@@ -1,14 +1,27 @@
 const models = require('../models');
-const validator = require('fastest-validator')
+const Validator = require('fastest-validator')
 
-
-const schema = {
-    title: {type:'string',optional:false,max:'100'},
-    content: {type:'string',optional: false, max: '500'},
-    categoryId: {type: 'number', optional: false}
-}
 
 function savePost(req,res) {
+
+    const validate = new Validator()
+
+    const schemaSavePost = {
+        title: {type:'string',optional:false,max:'100'},
+        content: {type:'string',optional: false, max: '500'},
+        categoryId: {type: 'number', optional: false}
+    }
+    
+    const validateSavePost = validate.validate(req.body,schemaSavePost)
+
+
+    if (validateSavePost !== true) {
+        return res.status(400).json({
+            message: 'Validation for savePost failed',
+            error: validateSavePost
+        })
+    }
+
     const post = {
         title: req.body.title,
         content: req.body.content,
@@ -69,6 +82,29 @@ function allPosts(req,res) {
 
 
 function updatePost(req,res) {
+
+
+    const validate = new Validator()
+
+    const schemaUpdatePost = {
+        title: {type:'string',optional:true,max:'100'},
+        content: {type:'string',optional: true, max: '500'},
+        categoryId: {type: 'number', optional: true}
+    }
+    
+    const validateUpdatePost = validate.validate(req.body,schemaUpdatePost)
+
+
+    if (validateUpdatePost !== true) {
+        return res.status(400).json({
+            message: 'Validation for savePost failed',
+            error: validateUpdatePost
+
+        })
+    }
+
+
+
     const id = req.params.id;
     const updatedPost = {
         title: req.body.title,
@@ -82,9 +118,9 @@ function updatePost(req,res) {
     models.Post.update(updatedPost, {where: {id:id, userId: userId}}).then(result => {
         res.status(200).json({
             message: 'post sucesful updated',
-            post: updatePost
+            result: updatePost
         })
-    }).catch(e=> {
+    }).catch(error=> {
         res.status(500).json({
             message: 'someting went wrong',
             error: error
